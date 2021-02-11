@@ -1,2 +1,4 @@
 .venv/
 .vscode/
+
+mysite/home/db.sqlite3
