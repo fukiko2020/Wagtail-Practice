@@ -9,9 +9,13 @@
 
     <div class="intro">{{page.intro|richtext}}</div>
 
-    {% for post in page.get_children %}
+    <!-- get_children:基底クラスPageのインスタンスのリストを返す -->
+    <!-- {#% for post in page.get_children %#} -->
+    {% for post in blogpages %}
         <!-- pageurlタグ　Djangoのurlタグのような感じ -->
-        <h2><a href="{% pageurl post %}">{{post.title}}</a></h2>
+        <h2><a href="{% pageurl post %}">
+        <!-- titleは基底のPageモデルにあるけど、introはPageモデルにはなくて自分で追加したから、.specificがいる -->
+        {{post.title}}</a></h2>
         {{post.specific.intro}}
         {{post.specific.body|richtext}}
     {% endfor %}
