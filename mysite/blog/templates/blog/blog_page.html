@@ -1,18 +1,26 @@
 {% extends "base.html" %}
 
-{% load wagtailcore_tags %}
+{% load wagtailcore_tags wagtailimages_tags %}
 
 {% block body_class %}template_blogpage{% endblock %}
 
 {% block content %}
-<h1>{{page.title}}</h1>
-<p class="meta">{{page.date}}</p>
+    <h1>{{page.title}}</h1>
+    <p class="meta">{{page.date}}</p>
 
-<div class="intro">{{page.intro}}</div>
+    <div class="intro">{{page.intro}}</div>
 
-{{post.body|richtext}}
+    {{post.body|richtext}}
 
-<!-- get_parentで親投稿のURLを取得 -->
-<p><a href="{{page.get_parent.url}}">Return to blog</a></p>
+    {% for item in page.gallery_images.all %}
+        <div style="float: left; margin: 10px;">
+            <!-- {#% image %#}タグ サイズも指定-->
+            {% image item.image fill-200x240 %}
+            <p>{{item.caption}}</p>
+        </div>
+    {% endfor %}
+
+    <!-- get_parentで親投稿のURLを取得 -->
+    <p><a href="{{page.get_parent.url}}">Return to blog</a></p>
 
 {% endblock %}

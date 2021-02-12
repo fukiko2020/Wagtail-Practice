@@ -1,5 +1,7 @@
 from django.db import models
 
+from modelcluster.fields import ParentalKey
+
 from wagtail.core.models import Page, Orderable
 from wagtail.core.fields import RichTextField
 from wagtail.admin.edit_handlers import FieldPanel, InlinePanel
@@ -26,15 +28,45 @@ class BlogPage(Page):
     intro = models.CharField(max_length=250)
     body = RichTextField(blank=True)
 
+    # ギャラリーの最初の画像を返す独自メソッド
+    def main_image(self):
+        gallery_item = self.gallery_images.first()
+        if gallery_item:
+            return gallery_item.image
+        else:
+            return None
+
     search_fields = Page.search_fields + [
         index.SearchField('intro'),
         index.SearchField('body'),
     ]
 
+    # 編集画面に表示されるパネル
     content_panels = Page.content_panels + [
         FieldPanel('date'),
         FieldPanel('intro'),
         FieldPanel('body', classname="full"),
+        # BlogPageGalleryImageのgallery_imagesをBlogPageに追加
+        InlinePanel('gallery_images', label="Gallery images"),
+    ]
+
+
+# 画像専用のモデルを作る
+# そうすれば、テンプレートの中でレイアウトやスタイルをコントロールしやすくなる
+# 文字とは独立してどこでも使えるようにもなる。サムネイルなど
+class BlogPageGalleryImage(Orderable):
+    # Orderable:モデルにsort_orderフィールドを追加。ギャラリー内での画像の順番を追跡
+    # ParentalKey:BlogPageGalleryImageをBlogPageの子モデルとして定義
+    page = ParentalKey(BlogPage, on_delete=models.CASCADE, related_name='gallery_images')
+    image = models.ForeignKey(
+        # wagtailのImageモデルのForeignKey
+        'wagtailimages.Image', on_delete=models.CASCADE, related_name='+'
+    )
+    caption = models.CharField(blank=True, max_length=250)
+
+    panels = [
+        ImageChooserPanel('image'),
+        FieldPanel('caption'),
     ]
 
 """Doc Page Models"""
