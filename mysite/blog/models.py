@@ -1,6 +1,7 @@
+from django import forms
 from django.db import models
 
-from modelcluster.fields import ParentalKey
+from modelcluster.fields import ParentalKey, ParentalManyToManyField
 from modelcluster.contrib.taggit import ClusterTaggableManager
 from taggit.models import TaggedItemBase
 
@@ -9,6 +10,7 @@ from wagtail.core.fields import RichTextField
 from wagtail.admin.edit_handlers import FieldPanel, InlinePanel, MultiFieldPanel
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.search import index
+from wagtail.snippets.models import register_snippet
 
 # ツリー構造の中で、幹というか茎？の部分(node)
 class BlogIndexPage(Page):
@@ -39,6 +41,7 @@ class BlogPage(Page):
     intro = models.CharField(max_length=250)
     body = RichTextField(blank=True)
     tags = ClusterTaggableManager(through=BlogPageTag, blank=True)
+    categories = ParentalManyToManyField('blog.BlogCategory', blank=True)
 
     # ギャラリーの最初の画像を返す独自メソッド
     def main_image(self):
@@ -58,6 +61,7 @@ class BlogPage(Page):
         MultiFieldPanel([
             FieldPanel('date'),
             FieldPanel('tags'),
+            FieldPanel('categories', widget=forms.CheckboxSelectMultiple),
         ], heading="Blog information"),
         FieldPanel('intro'),
         FieldPanel('body'),
@@ -99,7 +103,28 @@ class BlogTagIndexPage(Page):
         context['blogpages'] = blogpages
         return context
 
-# authorモデルとauthorのProfileが未定義
+# authorモデルとauthorのProfileが未定義(練習)
+
+# snippets：管理画面で管理できるが、ページのツリーモデルには含まれない、再利用可能な部品
+@register_snippet  # このデコレータによってモデルをsnippetとして登録
+# カテゴリーはそれ自体のページを持たないので、普通のModelとして定義
+class BlogCategory(models.Model):
+    name = models.CharField(max_length=255)
+    icon = models.ForeignKey(
+        'wagtailimages.Image', null=True, blank=True, on_delete=models.SET_NULL, related_name='+'
+    )
+
+    # snippetsの管理画面の編集画面はcontent/promote/settingに分かれていないので、content_panelとする必要はない
+    panels = [
+        FieldPanel('name'),
+        ImageChooserPanel('icon'),
+    ]
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = 'blog categories'
 
 """Doc Page Models"""
 # class BlogPage(Page):

@@ -30,6 +30,20 @@
         </div>
     {% endif %}
 
+    {% with categories=page.categories.all %}
+        {% if categories %}
+        <h3>Posted in:</h3>
+        <ul>
+            {% for category in categories %}
+            <li style="display: inline">
+                {% image category.icon fill-32x32   style="vertical-align: middle" %}
+            {{ category.name }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    {% endwith %}
+
     <!-- get_parentで親投稿のURLを取得 -->
     <p><a href="{{page.get_parent.url}}">Return to blog</a></p>
 
