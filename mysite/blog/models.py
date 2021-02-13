@@ -1,10 +1,12 @@
 from django.db import models
 
 from modelcluster.fields import ParentalKey
+from modelcluster.contrib.taggit import ClusterTaggableManager
+from taggit.models import TaggedItemBase
 
 from wagtail.core.models import Page, Orderable
 from wagtail.core.fields import RichTextField
-from wagtail.admin.edit_handlers import FieldPanel, InlinePanel
+from wagtail.admin.edit_handlers import FieldPanel, InlinePanel, MultiFieldPanel
 from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.search import index
 
@@ -22,11 +24,21 @@ class BlogIndexPage(Page):
         context['blogpages'] = blogpages
         return context
 
+
+class BlogPageTag(TaggedItemBase):
+    content_object = ParentalKey(
+        'BlogPage',
+        related_name='tagged_items',
+        on_delete=models.CASCADE
+    )
+
+
 # ツリー構造の中で、葉の部分
 class BlogPage(Page):
     date = models.DateField("Post date")
     intro = models.CharField(max_length=250)
     body = RichTextField(blank=True)
+    tags = ClusterTaggableManager(through=BlogPageTag, blank=True)
 
     # ギャラリーの最初の画像を返す独自メソッド
     def main_image(self):
@@ -43,9 +55,12 @@ class BlogPage(Page):
 
     # 編集画面に表示されるパネル
     content_panels = Page.content_panels + [
-        FieldPanel('date'),
+        MultiFieldPanel([
+            FieldPanel('date'),
+            FieldPanel('tags'),
+        ], heading="Blog information"),
         FieldPanel('intro'),
-        FieldPanel('body', classname="full"),
+        FieldPanel('body'),
         # BlogPageGalleryImageのgallery_imagesをBlogPageに追加
         InlinePanel('gallery_images', label="Gallery images"),
     ]
@@ -68,6 +83,23 @@ class BlogPageGalleryImage(Orderable):
         ImageChooserPanel('image'),
         FieldPanel('caption'),
     ]
+
+# ブログ記事のタグボタンをクリックしたときの画面
+class BlogTagIndexPage(Page):
+    # Pageを継承しているが、フィールドは定義していない
+
+    def get_context(self, request):
+
+        # Filter by tag
+        tag = request.GET.get('tag')
+        blogpages = BlogPage.objects.filter(tags__name=tag)
+
+        # Update template context
+        context = super().get_context(request)
+        context['blogpages'] = blogpages
+        return context
+
+# authorモデルとauthorのProfileが未定義
 
 """Doc Page Models"""
 # class BlogPage(Page):
