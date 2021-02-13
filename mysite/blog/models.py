@@ -42,6 +42,7 @@ class BlogPage(Page):
     body = RichTextField(blank=True)
     tags = ClusterTaggableManager(through=BlogPageTag, blank=True)
     categories = ParentalManyToManyField('blog.BlogCategory', blank=True)
+    author = ParentalManyToManyField('blog.BlogAuthor', blank=True)
 
     # ギャラリーの最初の画像を返す独自メソッド
     def main_image(self):
@@ -62,6 +63,7 @@ class BlogPage(Page):
             FieldPanel('date'),
             FieldPanel('tags'),
             FieldPanel('categories', widget=forms.CheckboxSelectMultiple),
+            FieldPanel('author', widget=forms.CheckboxSelectMultiple),
         ], heading="Blog information"),
         FieldPanel('intro'),
         FieldPanel('body'),
@@ -125,6 +127,25 @@ class BlogCategory(models.Model):
 
     class Meta:
         verbose_name_plural = 'blog categories'
+
+
+# 自作　練習用
+@register_snippet
+class BlogAuthor(models.Model):
+    name = models.CharField(max_length=100)
+    icon = models.ForeignKey('wagtailimages.Image', null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+
+    panels = [
+        FieldPanel('name'),
+        ImageChooserPanel('icon'),
+    ]
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = 'author'
+
 
 """Doc Page Models"""
 # class BlogPage(Page):

@@ -13,7 +13,8 @@
             <!-- latest_revision_created_atフィールドはいつでも利用可能 -->
             <small>Revised:{{blogpage.latest_revision_created_at }}</small><br>
             {% if blogpage.author %}
-                <p>By {{blogpage.author.profile}}</p>
+                <p>By {{blogpage.author.name}}</p>
+                <p>{{blogpage.author.icon}}</p>
             {% endif %}
         </p>
 

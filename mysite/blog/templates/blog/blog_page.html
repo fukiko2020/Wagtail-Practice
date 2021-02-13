@@ -7,6 +7,13 @@
 {% block content %}
     <h1>{{page.title}}</h1>
     <p class="meta">{{page.date}}</p>
+    {% with authors=page.author.all %}
+    {% if authors %}
+        {% for author in authors %}
+        <p>{{author.name}}</p>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
 
     <div class="intro">{{page.intro}}</div>
 
